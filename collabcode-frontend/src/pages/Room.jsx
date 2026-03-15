@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { runCode } from "../api/api";
 import Editor from "../components/Editor";
 import Chat from "../components/Chat";
-import { connectWebSocket, disconnectWebSocket, sendCodeUpdate, subscribeChat } from "../services/websocket";
-
+import { connectWebSocket, disconnectWebSocket, sendCodeUpdate } from "../services/websocket";
+import axios from "axios";
 
 export default function Room() {
 
@@ -18,13 +18,17 @@ export default function Room() {
     const [messages, setMessages] = useState([])
 
     useEffect(() => {
+        axios.get(`http://localhost:8080/chat/history/${roomCode}`)
+             .then((res) => {
+                setMessages(res.data);
+             });
         connectWebSocket(roomCode, (data) => {
             isRemoteUpdate.current = true;
             setCode(data.code);
-        });
-        subscribeChat(roomCode, (data) => {
+        }, (data) => {
             setMessages((prev) => [...prev, data]);
-        });
+        }
+    );
         return () => {
             disconnectWebSocket();
         };
