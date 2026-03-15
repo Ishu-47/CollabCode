@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { runCode } from "../api/api";
 import Editor from "../components/Editor";
 import Chat from "../components/Chat";
-import { connectWebSocket, disconnectWebSocket, sendCodeUpdate } from "../services/websocket";
+import { connectWebSocket, disconnectWebSocket,  sendCodeUpdate } from "../services/websocket";
 import axios from "axios";
 
 export default function Room() {
@@ -15,20 +15,24 @@ export default function Room() {
 
     const [code, setCode] = useState("");
     const [output, setOutput] = useState("");
-    const [messages, setMessages] = useState([])
+    const [messages, setMessages] = useState([]);
+    const [users, setUsers] = useState([]);
 
     useEffect(() => {
         axios.get(`http://localhost:8080/chat/history/${roomCode}`)
-             .then((res) => {
+            .then((res) => {
                 setMessages(res.data);
-             });
-        connectWebSocket(roomCode, (data) => {
+            });
+        connectWebSocket(roomCode, username, (data) => {
             isRemoteUpdate.current = true;
             setCode(data.code);
         }, (data) => {
             setMessages((prev) => [...prev, data]);
-        }
-    );
+        },
+            (users) => {
+                setUsers(users);
+            }
+        );
         return () => {
             disconnectWebSocket();
         };
@@ -57,36 +61,65 @@ export default function Room() {
 
     return (
         <div className="h-screen bg-gray-950 text-white flex flex-col">
-            <div className="flex justify-between items-center p-4 bg-gray-800">
-                <h2 className="text-lg font-semibold">
-                    Room: {roomCode}
+
+            {/* Top Bar */}
+            <div className="flex justify-between items-center px-6 py-3 bg-gray-900 border-b border-gray-700">
+
+                <h2 className="text-lg font-semibold tracking-wide">
+                    🚀 Room: {roomCode}
                 </h2>
+                <span className="text-xs text-gray-400 ml-3">
+                    {language}
+                </span>
+
+                <button
+                    onClick={handleRun}
+                    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium transition"
+                >
+                    ▶ Run Code
+                </button>
+
             </div>
 
-            <button onClick={handleRun} className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded">
-                Run Code
-            </button>
-            <div className="flex flex-1">
-                <div className="flex-1 p-2" >
-                    <Editor code={code} setCode={handleCodeChange} language={language} />
+            {/* Main Layout */}
+            <div className="flex flex-1 overflow-hidden">
+
+                {/* Editor */}
+                <div className="flex-1 p-3">
+                    <div className="h-full rounded-lg overflow-hidden border border-gray-800">
+                        <Editor
+                            code={code}
+                            setCode={handleCodeChange}
+                            language={language}
+                        />
+                    </div>
                 </div>
-                <div className="w-80 bg-gray-800 border-l border-gray-700">
+
+                {/* Chat Panel */}
+                <div className="w-80 bg-gray-900 border-l border-gray-800 flex flex-col">
                     <Chat
                         username={username}
                         roomCode={roomCode}
                         messages={messages}
-                        setMessages={setMessages}
+                        users={users}
                     />
                 </div>
+
             </div>
-            <div className="h-40 bg-black p-3 overflow-auto">
-                <h3 className="text-sm text-gray-400 mb-2">
-                    Output
+
+            {/* Output Console */}
+            <div className="h-40 bg-black border-t border-gray-800 p-3 overflow-auto">
+
+                <h3 className="text-xs text-gray-400 mb-2 uppercase tracking-wider">
+                    Console Output
                 </h3>
-                <pre className="text-green-400 text-sm">
+
+                <pre className="text-green-400 text-sm whitespace-pre-wrap">
                     {output}
                 </pre>
+
             </div>
+
         </div>
     );
 }

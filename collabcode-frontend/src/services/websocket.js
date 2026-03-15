@@ -2,7 +2,7 @@ import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
 
 let stompClient = null;
- export const connectWebSocket = (roomCode, onCodeReceived, onChatReceived) => {
+export const connectWebSocket = (roomCode,username, onCodeReceived, onChatReceived, onUsersUpdate) => {
 
     const socket = new SockJS("http://localhost:8080/ws");
 
@@ -24,13 +24,24 @@ let stompClient = null;
                 onChatReceived(data);
             });
 
+            stompClient.subscribe(`/topic/users/${roomCode}`, (message) => {
+                const users = JSON.parse(message.body);
+                onUsersUpdate(users);
+            });
+            stompClient.publish({
+                destination: "/app/join",
+                body: JSON.stringify({
+                    roomCode: roomCode,
+                    username: username
+                }),
+            });
         }
     });
 
     stompClient.activate();
 };
- export const sendCodeUpdate = (roomCode, code) => {
-    if(!stompClient){
+export const sendCodeUpdate = (roomCode, code) => {
+    if (!stompClient) {
         return;
     }
     stompClient.publish({
@@ -40,17 +51,17 @@ let stompClient = null;
             code: code,
         }),
     });
- };
+};
 
- export const disconnectWebSocket = () => {
-    if(stompClient) {
+export const disconnectWebSocket = () => {
+    if (stompClient) {
         stompClient.deactivate();
     }
- };
+};
 
- 
 
- export const sendChatMessage = (roomCode, username, message) => {
+
+export const sendChatMessage = (roomCode, username, message) => {
     stompClient.publish({
         destination: "/app/chat",
         body: JSON.stringify({
@@ -59,5 +70,6 @@ let stompClient = null;
             message
         }),
     });
- };
- 
+};
+
+
