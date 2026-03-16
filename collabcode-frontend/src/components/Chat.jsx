@@ -1,9 +1,13 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { sendChatMessage } from "../services/websocket";
 
 export default function Chat({ username, roomCode, messages, users }) {
 
     const [text, setText] = useState("");
+    const messagesEndRef = useRef(null);
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({behavior: "smooth"});
+    }, [messages]);
     const sendMessage = () => {
         if (!text.trim()) return;
 
@@ -13,8 +17,6 @@ export default function Chat({ username, roomCode, messages, users }) {
 
     return (
         <div className="flex flex-col h-full">
-
-            {/* USERS ONLINE */}
             <div className="p-3 border-b border-gray-800">
 
                 <div className="text-xs text-gray-400 mb-2 uppercase">
@@ -33,14 +35,10 @@ export default function Chat({ username, roomCode, messages, users }) {
                 </div>
 
             </div>
-
-            {/* CHAT HEADER */}
             <div className="p-3 border-b border-gray-800 text-sm font-semibold">
                 💬 Chat
             </div>
-
-            {/* CHAT MESSAGES */}
-            <div className="flex-1 p-3 overflow-auto space-y-2">
+            <div className="flex-1 p-3 overflow-auto space-y-2 no-scrollbar">
 
                 {messages.map((m, i) => (
                     <div
@@ -59,16 +57,19 @@ export default function Chat({ username, roomCode, messages, users }) {
 
                     </div>
                 ))}
-
+                <div ref={messagesEndRef} />
             </div>
-
-            {/* MESSAGE INPUT */}
             <div className="p-2 border-t border-gray-800 flex gap-2">
 
                 <input
                     className="flex-1 bg-gray-800 p-2 rounded-md text-sm outline-none focus:ring-1 focus:ring-blue-500"
                     value={text}
                     placeholder="Type a message..."
+                    onKeyDown={(e) => {
+                        if(e.key == "Enter"){
+                            sendMessage();
+                        }
+                    }}
                     onChange={(e) => setText(e.target.value)}
                 />
 
