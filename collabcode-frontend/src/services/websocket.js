@@ -2,7 +2,7 @@ import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
 
 let stompClient = null;
-export const connectWebSocket = (roomCode,username, onCodeReceived, onChatReceived, onUsersUpdate) => {
+export const connectWebSocket = (roomCode, username, onCodeReceived, onChatReceived, onUsersUpdate, onCursorReceived) => {
 
     const socket = new SockJS("http://localhost:8080/ws");
 
@@ -34,6 +34,13 @@ export const connectWebSocket = (roomCode,username, onCodeReceived, onChatReceiv
                     roomCode: roomCode,
                     username: username
                 }),
+            });
+            stompClient.subscribe(`/topic/cursor/${roomCode}`, (message) => {
+                const data = JSON.parse(message.body);
+
+                if (data.username === username) return;
+
+                onCursorReceived(data);
             });
         }
     });
@@ -71,5 +78,18 @@ export const sendChatMessage = (roomCode, username, message) => {
         }),
     });
 };
+export const sendCursorPosition = (roomCode, username, lineNumber, column) => {
 
+    if (!stompClient) return;
+
+    stompClient.publish({
+        destination: "/app/cursor",
+        body: JSON.stringify({
+            roomCode,
+            username,
+            lineNumber,
+            column
+        }),
+    });
+};
 

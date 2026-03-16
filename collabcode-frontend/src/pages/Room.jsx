@@ -1,56 +1,53 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { runCode } from "../api/api";
 import Editor from "../components/Editor";
 import Chat from "../components/Chat";
-import { connectWebSocket, disconnectWebSocket,  sendCodeUpdate } from "../services/websocket";
 import axios from "axios";
+
+import useRoomSocket from "../hooks/useRoomSocket";
+import useCodeSync from "../hooks/useCodeSync";
+import useCursorSync from "../hooks/useCursorSync";
+import { useSearchParams } from "react-router-dom";
 
 export default function Room() {
 
-    const params = new URLSearchParams(window.location.search);
-    const isRemoteUpdate = useRef(false);
-    const roomCode = params.get("roomCode");
-    const username = params.get("username");
-    const language = params.get("language");
+    const[searchParams, setSearchParams] = useSearchParams();
 
-    const [code, setCode] = useState("");
-    const [output, setOutput] = useState("");
+    const roomCode = searchParams.get("roomCode");
+    const username = searchParams.get("username");
+    const language = searchParams.get("language");
+
     const [messages, setMessages] = useState([]);
     const [users, setUsers] = useState([]);
+    const [output, setOutput] = useState("");
 
+    // code sync hook
+    const { code, handleCodeChange, handleRemoteCode } = useCodeSync(roomCode);
+
+    // cursor hook
+    const { remoteCursors, handleCursorUpdate } = useCursorSync();
+
+    // websocket connection
+    useRoomSocket(
+        roomCode,
+        username,
+        handleRemoteCode,
+        (msg) => setMessages((prev) => [...prev, msg]),
+        setUsers,
+        handleCursorUpdate
+    );
+
+    // load chat history
     useEffect(() => {
-        axios.get(`http://localhost:8080/chat/history/${roomCode}`)
-            .then((res) => {
-                setMessages(res.data);
-            });
-        connectWebSocket(roomCode, username, (data) => {
-            isRemoteUpdate.current = true;
-            setCode(data.code);
-        }, (data) => {
-            setMessages((prev) => [...prev, data]);
-        },
-            (users) => {
-                setUsers(users);
-            }
-        );
-        return () => {
-            disconnectWebSocket();
-        };
+        axios
+            .get(`http://localhost:8080/chat/history/${roomCode}`)
+            .then((res) => setMessages(res.data));
     }, []);
 
-    const handleCodeChange = (value) => {
-        if (value === undefined) return;
-
-        setCode(value);
-        if (!isRemoteUpdate.current) {
-            sendCodeUpdate(roomCode, value);
-        }
-        isRemoteUpdate.current = false;
-    };
-
-
     const handleRun = async () => {
+
         const res = await runCode(code, language);
+
         setOutput(
             res.data.stdout ||
             res.data.stderr ||
@@ -68,7 +65,8 @@ export default function Room() {
                 <h2 className="text-lg font-semibold tracking-wide">
                     🚀 Room: {roomCode}
                 </h2>
-                <span className="text-xs text-gray-400 ml-3">
+
+                <span className="text-xs font-semibold text-gray-400 ml-3">
                     {language}
                 </span>
 
@@ -87,22 +85,29 @@ export default function Room() {
                 {/* Editor */}
                 <div className="flex-1 p-3">
                     <div className="h-full rounded-lg overflow-hidden border border-gray-800">
+
                         <Editor
                             code={code}
                             setCode={handleCodeChange}
                             language={language}
+                            roomCode={roomCode}
+                            username={username}
+                            remoteCursors={remoteCursors}
                         />
+
                     </div>
                 </div>
 
-                {/* Chat Panel */}
+                {/* Chat */}
                 <div className="w-80 bg-gray-900 border-l border-gray-800 flex flex-col">
+
                     <Chat
                         username={username}
                         roomCode={roomCode}
                         messages={messages}
                         users={users}
                     />
+
                 </div>
 
             </div>
