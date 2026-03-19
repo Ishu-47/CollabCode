@@ -13,6 +13,6 @@ public interface RoomMemberRepository extends JpaRepository<RoomMember, UUID> {
 
     List<RoomMember> findByRoomRoomCode(String roomCode);
 
-    RoomMember findByRoomMemberAndUser(Room room, User user);
+    RoomMember findByRoomAndUser(Room room, User user);
 
 }

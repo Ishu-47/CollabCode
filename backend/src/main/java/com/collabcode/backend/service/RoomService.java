@@ -43,7 +43,7 @@ public class RoomService {
                     return userRepository.save(newUser);
                 });
 
-        RoomMember existing = roomMemberRepository.findByRoomMemberAndUser(room, user);
+        RoomMember existing = roomMemberRepository.findByRoomAndUser(room, user);
         if(existing != null){
             existing.setActive(true);
             return roomMemberRepository.save(existing);
