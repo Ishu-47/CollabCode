@@ -5,10 +5,14 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import com.collabcode.backend.entity.Room;
 import com.collabcode.backend.entity.RoomMember;
+import com.collabcode.backend.entity.User;
 
 public interface RoomMemberRepository extends JpaRepository<RoomMember, UUID> {
 
     List<RoomMember> findByRoomRoomCode(String roomCode);
+
+    RoomMember findByRoomMemberAndUser(Room room, User user);
 
 }

@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.collabcode.backend.dto.RoomMemberDTO;
 import com.collabcode.backend.entity.Room;
 import com.collabcode.backend.entity.RoomMember;
 import com.collabcode.backend.service.RoomService;
@@ -24,7 +25,8 @@ public class RoomController {
     }
 
     @PostMapping("/join")
-    public RoomMember joinRoom(@RequestParam String roomCode, @RequestParam String username){
-        return roomService.joinRoom(roomCode, username);
+    public RoomMemberDTO joinRoom(@RequestParam String roomCode, @RequestParam String username){
+        RoomMember member = roomService.joinRoom(roomCode, username);
+        return new RoomMemberDTO(member.getUser().getUsername());
     }
 }
