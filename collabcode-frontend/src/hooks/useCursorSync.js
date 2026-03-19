@@ -5,13 +5,13 @@ export default function useCursorSync() {
     const [remoteCursors, setRemoteCursors] = useState({});
 
     const handleCursorUpdate = (cursorData) => {
-
-        setRemoteCursors((prev) => ({
+    setRemoteCursors((prev) => {
+        return {
             ...prev,
             [cursorData.username]: cursorData
-        }));
-
-    };
+        };
+    });
+};
 
     return {
         remoteCursors,

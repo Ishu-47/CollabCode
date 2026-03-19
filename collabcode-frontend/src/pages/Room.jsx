@@ -14,7 +14,7 @@ export default function Room() {
     const[searchParams, setSearchParams] = useSearchParams();
 
     const roomCode = searchParams.get("roomCode");
-    const username = searchParams.get("username");
+    const username = searchParams.get("username")?.trim();
     const language = searchParams.get("language");
 
     const [messages, setMessages] = useState([]);

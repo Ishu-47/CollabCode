@@ -2,85 +2,102 @@ import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
 
 let stompClient = null;
-export const connectWebSocket = (roomCode, username, onCodeReceived, onChatReceived, onUsersUpdate, onCursorReceived) => {
+
+export const connectWebSocket = (
+    roomCode,
+    username,
+    onCodeReceived,
+    onChatReceived,
+    onUsersUpdate,
+    onCursorReceived
+) => {
 
     const socket = new SockJS("http://localhost:8080/ws");
 
-    stompClient = new Client({
+    const client = new Client({
         webSocketFactory: () => socket,
-        reconnectDelay: 5000,
-
-        onConnect: () => {
-
-            console.log("Connected to WebSocket");
-
-            stompClient.subscribe(`/topic/room/${roomCode}`, (message) => {
-                const data = JSON.parse(message.body);
-                onCodeReceived(data);
-            });
-
-            stompClient.subscribe(`/topic/chat/${roomCode}`, (message) => {
-                const data = JSON.parse(message.body);
-                onChatReceived(data);
-            });
-
-            stompClient.subscribe(`/topic/users/${roomCode}`, (message) => {
-                const users = JSON.parse(message.body);
-                onUsersUpdate(users);
-            });
-            stompClient.publish({
-                destination: "/app/join",
-                body: JSON.stringify({
-                    roomCode: roomCode,
-                    username: username
-                }),
-            });
-            stompClient.subscribe(`/topic/cursor/${roomCode}`, (message) => {
-                const data = JSON.parse(message.body);
-
-                if (data.username === username) return;
-
-                onCursorReceived(data);
-            });
-        }
+        reconnectDelay: 5000
     });
 
-    stompClient.activate();
+    client.onConnect = () => {
+
+        console.log("Connected:", username);
+
+        client.subscribe(`/topic/room/${roomCode}`, (message) => {
+            const data = JSON.parse(message.body);
+            onCodeReceived(data);
+        });
+
+        client.subscribe(`/topic/chat/${roomCode}`, (message) => {
+            const data = JSON.parse(message.body);
+            onChatReceived(data);
+        });
+
+        client.subscribe(`/topic/users/${roomCode}`, (message) => {
+            const users = JSON.parse(message.body);
+            onUsersUpdate(users);
+        });
+
+        client.subscribe(`/topic/cursor/${roomCode}`, (message) => {
+            const data = JSON.parse(message.body);
+
+            console.log("📥 RAW CURSOR RECEIVED:", data);
+
+            // Ignore self
+            // if (data.username.toLowerCase() === username.toLowerCase()) {
+            //     console.log("🚫 Ignored self cursor:", data.username);
+            //     return;
+            // }
+
+            console.log("✅ PROCESSING CURSOR FROM:", data.username);
+
+            onCursorReceived(data);
+        });
+
+
+        client.publish({
+            destination: "/app/join",
+            body: JSON.stringify({
+                roomCode,
+                username
+            })
+        });
+    };
+
+    client.activate();
+
+    stompClient = client;
 };
+
 export const sendCodeUpdate = (roomCode, code) => {
-    if (!stompClient) {
-        return;
-    }
+    if (!stompClient) return;
+
     stompClient.publish({
         destination: "/app/code",
         body: JSON.stringify({
-            roomCode: roomCode,
-            code: code,
-        }),
+            roomCode,
+            code
+        })
     });
 };
 
-export const disconnectWebSocket = () => {
-    if (stompClient) {
-        stompClient.deactivate();
-    }
-};
-
-
-
 export const sendChatMessage = (roomCode, username, message) => {
+    if (!stompClient) return;
+
     stompClient.publish({
         destination: "/app/chat",
         body: JSON.stringify({
             roomCode,
             username,
             message
-        }),
+        })
     });
 };
-export const sendCursorPosition = (roomCode, username, lineNumber, column) => {
 
+export const sendCursorPosition = (roomCode, username, lineNumber, column, timestamp) => {
     if (!stompClient) return;
+
+    console.log("📤 SENDING CURSOR:", username, lineNumber, column);
 
     stompClient.publish({
         destination: "/app/cursor",
@@ -88,8 +105,15 @@ export const sendCursorPosition = (roomCode, username, lineNumber, column) => {
             roomCode,
             username,
             lineNumber,
-            column
-        }),
+            column,
+            timestamp
+        })
     });
 };
 
+export const disconnectWebSocket = () => {
+    if (stompClient) {
+        stompClient.deactivate();
+        stompClient = null;
+    }
+};

@@ -3,25 +3,6 @@ import { useEffect, useRef } from "react";
 import { sendCursorPosition } from "../services/websocket";
 import throttle from "lodash.throttle";
 
-function getUserColor(username) {
-    const colors = [
-        "#6366f1",
-        "#22c55e",
-        "#f97316",
-        "#e11d48",
-        "#0ea5e9",
-        "#a855f7"
-    ];
-
-    let hash = 0;
-
-    for (let i = 0; i < username.length; i++) {
-        hash += username.charCodeAt(i);
-    }
-
-    return colors[hash % colors.length];
-}
-
 export default function Editor({
     code,
     setCode,
@@ -34,22 +15,30 @@ export default function Editor({
     const editorRef = useRef(null);
     const monacoRef = useRef(null);
     const decorationsRef = useRef([]);
+    const sendCursorRef = useRef(null);
 
-    const sendCursor = throttle((line, column) => {
-        sendCursorPosition(roomCode, username, line, column);
-    }, 80);
+    useEffect(() => {
+        sendCursorRef.current = throttle((line, column) => {
+            sendCursorPosition(roomCode, username, line, column, Date.now());
+        }, 200);
+
+        return () => {
+            sendCursorRef.current?.cancel();
+        };
+    }, [roomCode, username]);
 
     const handleEditorDidMount = (editor, monaco) => {
 
         editorRef.current = editor;
         monacoRef.current = monaco;
 
-        editor.onDidChangeCursorPosition((event) => {
-
+        const cursorDisposable = editor.onDidChangeCursorPosition((event) => {
             const pos = event.position;
+            sendCursorRef.current?.(pos.lineNumber, pos.column);
+        });
 
-            sendCursor(pos.lineNumber, pos.column);
-
+        editor.onDidDispose(() => {
+            cursorDisposable.dispose();
         });
     };
 
@@ -60,34 +49,30 @@ export default function Editor({
         const editor = editorRef.current;
         const monaco = monacoRef.current;
 
-        const newDecorations = Object.values(remoteCursors).map((cursor) => {
-
-            const color = getUserColor(cursor.username);
-
-            return {
+        const newDecorations = Object.values(remoteCursors)
+            .filter((c) => c.username !== username)
+            .map((c) => ({
                 range: new monaco.Range(
-                    cursor.lineNumber,
-                    cursor.column,
-                    cursor.lineNumber,
-                    cursor.column
+                    c.lineNumber,
+                    c.column,
+                    c.lineNumber,
+                    c.column + 1
                 ),
                 options: {
                     className: "remote-cursor",
                     after: {
-                        content: cursor.username,
-                        inlineClassName: "remote-cursor-label",
-                        inlineStyle: `background:${color};`
+                        content: c.username,
+                        inlineClassName: "remote-cursor-label"
                     }
                 }
-            };
-        });
+            }));
 
         decorationsRef.current = editor.deltaDecorations(
             decorationsRef.current,
             newDecorations
         );
 
-    }, [remoteCursors]);
+    }, [remoteCursors, username]);
 
     return (
         <MonacoEditor
