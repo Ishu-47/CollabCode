@@ -7,6 +7,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import lombok.*;
 
 @Entity
@@ -29,4 +31,8 @@ public class Room {
     private LocalDateTime createdAt;
 
     private LocalDateTime lastActiveAt;
+
+    @ManyToOne
+    @JoinColumn(name = "host_id")
+    private User host;
 }

@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -37,4 +39,10 @@ public class RoomMember {
     @ManyToOne
     @JoinColumn(name = "room_id")
     private Room room;
+
+    @Enumerated(EnumType.STRING)
+    private JoinStatus joinStatus;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
 }

@@ -1,7 +1,11 @@
 package com.collabcode.backend.controller;
 
+import java.util.UUID;
+
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -18,21 +22,39 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/rooms")
 @RequiredArgsConstructor
 public class RoomController {
-    
+
     private final RoomService roomService;
 
     @PostMapping("/create")
-    public Room createRoom(@RequestParam String language){
+    public Room createRoom(@RequestParam String language) {
         return roomService.createRoom(language);
     }
 
-    @PostMapping("/join")
-    public RoomMemberDTO joinRoom(@RequestParam String roomCode, @RequestParam String username){
-        RoomMember member = roomService.joinRoom(roomCode, username);
-        return new RoomMemberDTO(member.getUser().getUsername());
+    @PostMapping("/join/{roomCode}")
+    public ResponseEntity<?> requestJoin(@PathVariable String roomCode) {
+        roomService.requestToJoin(roomCode);
+        return ResponseEntity.ok("Request sent");
     }
+
+    @GetMapping("/pending/{roomCode}")
+    public ResponseEntity<?> getPending(@PathVariable String roomCode) {
+        return ResponseEntity.ok(roomService.getPendingUsers(roomCode));
+    }
+
+    @PostMapping("/approve/{memberId}")
+    public ResponseEntity<?> approve(@PathVariable UUID memberId) {
+        roomService.approveUser(memberId);
+        return ResponseEntity.ok("Approved");
+    }
+
+    @PostMapping("/reject/{memberId}")
+    public ResponseEntity<?> reject(@PathVariable UUID memberId) {
+        roomService.rejectUser(memberId);
+        return ResponseEntity.ok("Rejected");
+    }
+
     @GetMapping("/me")
-    public String getMe(){
+    public String getMe() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 }
