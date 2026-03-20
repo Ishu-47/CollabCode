@@ -161,7 +161,7 @@ public class RoomService {
             throw new RuntimeException("Not authorized");
         }
 
-        return roomMemberRepository.findByRoomAndStatus(room, JoinStatus.PENDING);
+        return roomMemberRepository.findByRoomAndJoinStatus(room, JoinStatus.PENDING);
     }
 
 }

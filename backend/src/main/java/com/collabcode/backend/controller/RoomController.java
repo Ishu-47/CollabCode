@@ -11,9 +11,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.collabcode.backend.dto.RoomMemberDTO;
+// import com.collabcode.backend.dto.RoomMemberDTO;
 import com.collabcode.backend.entity.Room;
-import com.collabcode.backend.entity.RoomMember;
+// import com.collabcode.backend.entity.RoomMember;
 import com.collabcode.backend.service.RoomService;
 
 import lombok.RequiredArgsConstructor;
