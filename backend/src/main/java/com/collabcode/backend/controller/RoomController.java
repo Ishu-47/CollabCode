@@ -1,5 +1,7 @@
 package com.collabcode.backend.controller;
 
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,5 +30,9 @@ public class RoomController {
     public RoomMemberDTO joinRoom(@RequestParam String roomCode, @RequestParam String username){
         RoomMember member = roomService.joinRoom(roomCode, username);
         return new RoomMemberDTO(member.getUser().getUsername());
+    }
+    @GetMapping("/me")
+    public String getMe(){
+        return SecurityContextHolder.getContext().getAuthentication().getName();
     }
 }

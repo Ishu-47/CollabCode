@@ -2,6 +2,8 @@ package com.collabcode.backend.service;
 
 import java.time.LocalDateTime;
 
+// import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.collabcode.backend.entity.Room;
@@ -58,4 +60,14 @@ public class RoomService {
 
         return roomMemberRepository.save(member);
     }
+
+    public User getCurrentUser(){
+        String username = SecurityContextHolder.getContext()
+                          .getAuthentication()
+                          .getName();
+                
+        return userRepository.findByUsername(username)
+               .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
 }
