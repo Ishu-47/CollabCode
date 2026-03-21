@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 
 import com.collabcode.backend.dto.ChatMessage;
@@ -23,6 +24,8 @@ public class ChatController {
 
     @MessageMapping("/chat")
     public void sendMessage(ChatMessage message){
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        message.setUsername(username);
         ChatMessageEntity entity = new ChatMessageEntity();
         entity.setRoomCode(message.getRoomCode());
         entity.setUsername(message.getUsername());

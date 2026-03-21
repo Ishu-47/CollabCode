@@ -2,6 +2,7 @@ package com.collabcode.backend.websocket;
 
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 
 import com.collabcode.backend.dto.UserJoinMessage;
@@ -20,6 +21,11 @@ public class PresenceController {
 
     @MessageMapping("/join")
     public void joinRoom(UserJoinMessage message) {
+        String username = SecurityContextHolder
+                .getContext()
+                .getAuthentication()
+                .getName();
+        message.setUsername(username);
         presenceService.addUser(message.getRoomCode(),
                 message.getUsername());
     messagingTemplate.convertAndSend("/topic/users/" + message.getRoomCode(), presenceService.getUsers(message.getRoomCode()));
