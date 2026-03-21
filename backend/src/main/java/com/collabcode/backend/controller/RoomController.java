@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.collabcode.backend.entity.JoinStatus;
 // import com.collabcode.backend.dto.RoomMemberDTO;
 import com.collabcode.backend.entity.Room;
 // import com.collabcode.backend.entity.RoomMember;
@@ -56,5 +57,9 @@ public class RoomController {
     @GetMapping("/me")
     public String getMe() {
         return SecurityContextHolder.getContext().getAuthentication().getName();
+    }
+    @GetMapping("/my-status/{roomCode}")
+    public JoinStatus getMyStatus(@PathVariable String roomCode){
+        return roomService.getMyJoinStatus(roomCode);
     }
 }

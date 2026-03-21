@@ -164,4 +164,15 @@ public class RoomService {
         return roomMemberRepository.findByRoomAndJoinStatus(room, JoinStatus.PENDING);
     }
 
+    public JoinStatus getMyJoinStatus(String roomCode){
+        User user = getCurrentUser();
+
+        Room room = roomRepository.findByRoomCode(roomCode)
+                    .orElseThrow(() -> new RuntimeException("Room not found"));
+
+        RoomMember member = roomMemberRepository.findByRoomAndUser(room, user).orElseThrow(() -> new RuntimeException("Not a member of this room"));
+
+        return member.getJoinStatus();
+    }
+
 }

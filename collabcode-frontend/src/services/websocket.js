@@ -3,19 +3,21 @@ import { Client } from "@stomp/stompjs";
 
 let stompClient = null;
 
-export const connectWebSocket = (
+export const connectWebSocket = async(
     roomCode,
-    username,
     onCodeReceived,
     onChatReceived,
     onUsersUpdate,
     onCursorReceived
 ) => {
+    const res = await api.get("/rooms/me");
+    const username = res.data;
 
     const socket = new SockJS("http://localhost:8080/ws");
 
     const client = new Client({
         webSocketFactory: () => socket,
+        debug: () => {},
         reconnectDelay: 5000
     });
 
@@ -41,7 +43,7 @@ export const connectWebSocket = (
         client.subscribe(`/topic/cursor/${roomCode}`, (message) => {
             const data = JSON.parse(message.body);
 
-            console.log("📥 RAW CURSOR RECEIVED:", data);
+           // console.log("📥 RAW CURSOR RECEIVED:", data);
 
             // Ignore self
             // if (data.username.toLowerCase() === username.toLowerCase()) {
@@ -49,7 +51,7 @@ export const connectWebSocket = (
             //     return;
             // }
 
-            console.log("✅ PROCESSING CURSOR FROM:", data.username);
+          //  console.log("✅ PROCESSING CURSOR FROM:", data.username);
 
             onCursorReceived(data);
         });

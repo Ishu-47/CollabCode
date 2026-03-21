@@ -1,51 +1,67 @@
 import { useEffect, useState } from "react";
-import { runCode } from "../api/api";
+import { runCode, getMyStatus } from "../api/api";
 import Editor from "../components/Editor";
 import Chat from "../components/Chat";
-import axios from "axios";
 
 import useRoomSocket from "../hooks/useRoomSocket";
 import useCodeSync from "../hooks/useCodeSync";
 import useCursorSync from "../hooks/useCursorSync";
-import { useSearchParams } from "react-router-dom";
+
+import { useParams, useNavigate } from "react-router-dom";
+import axios from "axios";
 
 export default function Room() {
 
-    const[searchParams, setSearchParams] = useSearchParams();
+    const { roomCode } = useParams();
+    const navigate = useNavigate();
 
-    const roomCode = searchParams.get("roomCode");
-    const username = searchParams.get("username")?.trim();
-    const language = searchParams.get("language");
+    const language = localStorage.getItem("language") || "java";
 
     const [messages, setMessages] = useState([]);
     const [users, setUsers] = useState([]);
     const [output, setOutput] = useState("");
 
-    // code sync hook
+    // ================= SECURITY CHECK =================
+    useEffect(() => {
+        const checkAccess = async () => {
+            try {
+                const res = await getMyStatus(roomCode);
+
+                if (res.data !== "APPROVED") {
+                    navigate("/");
+                }
+            } catch (err) {
+                navigate("/");
+            }
+        };
+
+        checkAccess();
+    }, [roomCode]);
+
+    // ================= CODE SYNC =================
     const { code, handleCodeChange, handleRemoteCode } = useCodeSync(roomCode);
 
-    // cursor hook
+    // ================= CURSOR =================
     const { remoteCursors, handleCursorUpdate } = useCursorSync();
 
-    // websocket connection
+    // ================= SOCKET =================
     useRoomSocket(
         roomCode,
-        username,
         handleRemoteCode,
         (msg) => setMessages((prev) => [...prev, msg]),
         setUsers,
         handleCursorUpdate
     );
 
-    // load chat history
+    // ================= CHAT HISTORY =================
     useEffect(() => {
         axios
             .get(`http://localhost:8080/chat/history/${roomCode}`)
             .then((res) => setMessages(res.data));
-    }, []);
+    }, [roomCode]);
 
+    // ================= RUN CODE =================
     const handleRun = async () => {
-
         const res = await runCode(code, language);
 
         setOutput(
@@ -62,17 +78,17 @@ export default function Room() {
             {/* Top Bar */}
             <div className="flex justify-between items-center px-6 py-3 bg-gray-900 border-b border-gray-700">
 
-                <h2 className="text-lg font-semibold tracking-wide">
+                <h2 className="text-lg font-semibold">
                     🚀 Room: {roomCode}
                 </h2>
 
-                <span className="text-xs font-semibold text-gray-400 ml-3">
+                <span className="text-xs text-gray-400">
                     {language}
                 </span>
 
                 <button
                     onClick={handleRun}
-                    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium transition"
+                    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md"
                 >
                     ▶ Run Code
                 </button>
@@ -85,37 +101,31 @@ export default function Room() {
                 {/* Editor */}
                 <div className="flex-1 p-3">
                     <div className="h-full rounded-lg overflow-hidden border border-gray-800">
-
                         <Editor
                             code={code}
                             setCode={handleCodeChange}
                             language={language}
                             roomCode={roomCode}
-                            username={username}
                             remoteCursors={remoteCursors}
                         />
-
                     </div>
                 </div>
 
                 {/* Chat */}
                 <div className="w-80 bg-gray-900 border-l border-gray-800 flex flex-col">
-
                     <Chat
-                        username={username}
                         roomCode={roomCode}
                         messages={messages}
                         users={users}
                     />
-
                 </div>
 
             </div>
 
-            {/* Output Console */}
+            {/* Output */}
             <div className="h-40 bg-black border-t border-gray-800 p-3 overflow-auto">
 
-                <h3 className="text-xs text-gray-400 mb-2 uppercase tracking-wider">
+                <h3 className="text-xs text-gray-400 mb-2">
                     Console Output
                 </h3>
 

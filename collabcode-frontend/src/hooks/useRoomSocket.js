@@ -3,7 +3,6 @@ import { connectWebSocket, disconnectWebSocket } from "../services/websocket";
 
 export default function useRoomSocket(
     roomCode,
-    username,
     onCodeReceived,
     onChatReceived,
     onUsersUpdate,
@@ -14,7 +13,6 @@ export default function useRoomSocket(
 
         connectWebSocket(
             roomCode,
-            username,
             onCodeReceived,
             onChatReceived,
             onUsersUpdate,
@@ -25,5 +23,5 @@ export default function useRoomSocket(
             disconnectWebSocket();
         };
 
-    }, []);
+    }, [roomCode]);
 }
