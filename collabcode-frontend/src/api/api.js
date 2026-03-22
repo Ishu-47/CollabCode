@@ -27,14 +27,20 @@ export const approveUser = (memberId) =>
   api.post(
     `http://localhost:8080/rooms/approve/${memberId}`
   );
-  export const rejectUser = (memberId) =>
+export const rejectUser = (memberId) =>
   api.post(
     `http://localhost:8080/rooms/reject/${memberId}`
   );
-  export const getMyStatus = (roomCode) => 
-    api.get(`http://localhost:8080/rooms/my-status/${roomCode}`);
+export const getMyStatus = (roomCode) =>
+  api.get(`http://localhost:8080/rooms/my-status/${roomCode}`);
 
 export const runCode = (code, language) =>
   api.post(`http://localhost:8080/execute`, { code, language });
+
+export const registerUser = (data) => 
+  api.post(`http://localhost:8080/auth/register`, data);
+
+export const loginUser = (data) =>
+  api.post(`http://localhost:8080/auth/login`, data);
 
 export default api;
