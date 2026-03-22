@@ -15,7 +15,7 @@ export default function Home() {
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const res = await api.get("http://localhost:8080/rooms/me");
+                const res = await api.get("/rooms/me");
                 setUsername(res.data.username);
 
                 // optional: store

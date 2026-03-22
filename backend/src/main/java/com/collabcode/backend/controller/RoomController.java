@@ -56,10 +56,12 @@ public class RoomController {
 
     @GetMapping("/me")
     public String getMe() {
+        System.out.println("AUTH: " + SecurityContextHolder.getContext().getAuthentication());
         return SecurityContextHolder.getContext().getAuthentication().getName();
     }
+
     @GetMapping("/my-status/{roomCode}")
-    public JoinStatus getMyStatus(@PathVariable String roomCode){
+    public JoinStatus getMyStatus(@PathVariable String roomCode) {
         return roomService.getMyJoinStatus(roomCode);
     }
 }

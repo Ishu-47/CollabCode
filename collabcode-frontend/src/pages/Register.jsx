@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { registerUser } from "../api/api";
 import { setToken } from "../utils/auth";
 
@@ -24,7 +24,7 @@ export default function Register() {
             setLoading(true);
             const res = await registerUser(form);
 
-            const token = res.data.token;
+            const token = res.data;
             setToken(token);
             navigate("/");
         } catch (err) {
@@ -42,7 +42,7 @@ export default function Register() {
                 </h1>
 
                 <input
-                    name="usernane"
+                    name="username"
                     placeholder="Username"
                     onChange={handleChange}
                     className="w-full p-3 mb-3 rounded bg-gray-700 outline-none"
