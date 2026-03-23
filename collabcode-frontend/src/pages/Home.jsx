@@ -16,7 +16,8 @@ export default function Home() {
         const fetchUser = async () => {
             try {
                 const res = await api.get("/rooms/me");
-                setUsername(res.data.username);
+                console.log("USER API RESPONSE:", res.data);
+                setUsername(res.data);
 
                 // optional: store
                 localStorage.setItem("username", res.data.username);

@@ -32,7 +32,7 @@ export default function WaitingRoom() {
         return () => clearInterval(interval);
     }, [roomCode]);
 
-    rreturn(
+    return(
         <div className="h-screen flex items-center justify-center bg-black text-white">
 
             <div className="text-center">
