@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { runCode, getMyStatus } from "../api/api";
+import api, { runCode, getMyStatus } from "../api/api";
 import Editor from "../components/Editor";
 import Chat from "../components/Chat";
 
@@ -8,7 +8,7 @@ import useCodeSync from "../hooks/useCodeSync";
 import useCursorSync from "../hooks/useCursorSync";
 
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { logout } from "../utils/auth";
 
 export default function Room() {
 
@@ -20,23 +20,28 @@ export default function Room() {
     const [messages, setMessages] = useState([]);
     const [users, setUsers] = useState([]);
     const [output, setOutput] = useState("");
+    const [authorized, setAuthorized] = useState(null);
 
-    // ================= SECURITY CHECK =================
+    // ================= ACCESS CONTROL =================
     useEffect(() => {
         const checkAccess = async () => {
             try {
                 const res = await getMyStatus(roomCode);
 
-                if (res.data !== "APPROVED") {
-                    navigate("/");
+                if (res.data === "APPROVED") {
+                    setAuthorized(true);
+                } else {
+                    setAuthorized(false);
+                    navigate(`/waiting/${roomCode}`);
                 }
             } catch (err) {
-                navigate("/");
+                setAuthorized(false);
+                navigate("/login");
             }
         };
 
         checkAccess();
-    }, [roomCode]);
+    }, [roomCode, navigate]);
 
     // ================= CODE SYNC =================
     const { code, handleCodeChange, handleRemoteCode } = useCodeSync(roomCode);
@@ -55,9 +60,10 @@ export default function Room() {
 
     // ================= CHAT HISTORY =================
     useEffect(() => {
-        axios
-            .get(`http://localhost:8080/chat/history/${roomCode}`)
-            .then((res) => setMessages(res.data));
+        api
+            .get(`/chat/history/${roomCode}`)
+            .then((res) => setMessages(res.data))
+            .catch(() => setMessages([]));
     }, [roomCode]);
 
     // ================= RUN CODE =================
@@ -72,6 +78,17 @@ export default function Room() {
         );
     };
 
+    // ================= SAFE RENDER =================
+    if (authorized === null) {
+        return (
+            <div className="h-screen flex items-center justify-center bg-black text-white">
+                Checking access...
+            </div>
+        );
+    }
+
+    if (!authorized) return null;
+
     return (
         <div className="h-screen bg-gray-950 text-white flex flex-col">
 
@@ -82,16 +99,37 @@ export default function Room() {
                     🚀 Room: {roomCode}
                 </h2>
 
-                <span className="text-xs text-gray-400">
-                    {language}
-                </span>
+                <div className="flex items-center gap-3">
 
-                <button
-                    onClick={handleRun}
-                    className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md"
-                >
-                    ▶ Run Code
-                </button>
+                    <span className="text-xs text-gray-400">
+                        {language}
+                    </span>
+
+                    <button
+                        onClick={() => navigate(`/room/${roomCode}/pending`)}
+                        className="bg-yellow-500 px-3 py-1 rounded text-sm"
+                    >
+                        Requests
+                    </button>
+
+                    <button
+                        onClick={handleRun}
+                        className="bg-blue-600 px-3 py-1 rounded"
+                    >
+                        ▶ Run
+                    </button>
+
+                    <button
+                        onClick={() => {
+                            logout();
+                            navigate("/login");
+                        }}
+                        className="bg-red-500 px-3 py-1 rounded"
+                    >
+                        Logout
+                    </button>
+
+                </div>
 
             </div>
 
@@ -117,6 +155,7 @@ export default function Room() {
                         roomCode={roomCode}
                         messages={messages}
                         users={users}
+                        username={localStorage.getItem("username")}
                     />
                 </div>
 
@@ -124,15 +163,12 @@ export default function Room() {
 
             {/* Output */}
             <div className="h-40 bg-black border-t border-gray-800 p-3 overflow-auto">
-
                 <h3 className="text-xs text-gray-400 mb-2">
                     Console Output
                 </h3>
-
                 <pre className="text-green-400 text-sm whitespace-pre-wrap">
                     {output}
                 </pre>
-
             </div>
 
         </div>
