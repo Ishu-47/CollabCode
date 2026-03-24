@@ -19,7 +19,15 @@ export default function Editor({
 
     useEffect(() => {
         sendCursorRef.current = throttle((line, column) => {
-            sendCursorPosition(roomCode, username, line, column, Date.now());
+            if (!username) return;   // ✅ prevent null
+
+            sendCursorPosition(
+                roomCode,
+                username,
+                line,
+                column,
+                Date.now()
+            );
         }, 200);
 
         return () => {

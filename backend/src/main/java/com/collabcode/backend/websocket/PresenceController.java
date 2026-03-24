@@ -21,11 +21,11 @@ public class PresenceController {
 
     @MessageMapping("/join")
     public void joinRoom(UserJoinMessage message) {
-        String username = SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getName();
-        message.setUsername(username);
+        // String username = SecurityContextHolder
+        //         .getContext()
+        //         .getAuthentication()
+        //         .getName();
+        // message.setUsername(username);
         presenceService.addUser(message.getRoomCode(),
                 message.getUsername());
     messagingTemplate.convertAndSend("/topic/users/" + message.getRoomCode(), presenceService.getUsers(message.getRoomCode()));

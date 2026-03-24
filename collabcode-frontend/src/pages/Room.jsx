@@ -21,6 +21,13 @@ export default function Room() {
     const [users, setUsers] = useState([]);
     const [output, setOutput] = useState("");
     const [authorized, setAuthorized] = useState(null);
+    const [username, setUsername] = useState("");
+
+    useEffect(() => {
+        api.get("/rooms/me").then(res => {
+            setUsername(res.data);
+        });
+    }, []);
 
     // ================= ACCESS CONTROL =================
     useEffect(() => {
@@ -145,6 +152,7 @@ export default function Room() {
                             language={language}
                             roomCode={roomCode}
                             remoteCursors={remoteCursors}
+                            username={username}
                         />
                     </div>
                 </div>
@@ -155,7 +163,7 @@ export default function Room() {
                         roomCode={roomCode}
                         messages={messages}
                         users={users}
-                        username={localStorage.getItem("username")}
+                        username={username}
                     />
                 </div>
 

@@ -6,8 +6,10 @@ export default function Chat({ username, roomCode, messages, users }) {
     const [text, setText] = useState("");
     const messagesEndRef = useRef(null);
     useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({behavior: "smooth"});
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
+
+    //console.log("MESSAGES:", messages);
     const sendMessage = () => {
         if (!text.trim()) return;
 
@@ -66,7 +68,7 @@ export default function Chat({ username, roomCode, messages, users }) {
                     value={text}
                     placeholder="Type a message..."
                     onKeyDown={(e) => {
-                        if(e.key == "Enter"){
+                        if (e.key == "Enter") {
                             sendMessage();
                         }
                     }}

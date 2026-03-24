@@ -43,10 +43,11 @@ export const connectWebSocket = async(
 
         client.subscribe(`/topic/cursor/${roomCode}`, (message) => {
             const data = JSON.parse(message.body);
+            
 
-           // console.log("📥 RAW CURSOR RECEIVED:", data);
+           ///console.log("📥 RAW CURSOR RECEIVED:", data);
 
-            // Ignore self
+            //Ignore self
             // if (data.username.toLowerCase() === username.toLowerCase()) {
             //     console.log("🚫 Ignored self cursor:", data.username);
             //     return;
@@ -85,8 +86,11 @@ export const sendCodeUpdate = (roomCode, code) => {
 };
 
 export const sendChatMessage = (roomCode, username, message) => {
-    if (!stompClient) return;
-
+    if (!stompClient) {
+       // console.log("❌ STOMP NOT CONNECTED");
+        return;
+    }
+    //console.log("📤 SENDING MESSAGE:", roomCode, username, message);
     stompClient.publish({
         destination: "/app/chat",
         body: JSON.stringify({

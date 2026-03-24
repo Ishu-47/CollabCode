@@ -24,8 +24,9 @@ public class ChatController {
 
     @MessageMapping("/chat")
     public void sendMessage(ChatMessage message){
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        message.setUsername(username);
+        System.out.println("🔥 BACKEND RECEIVED: " + message.getMessage());
+        // String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        // message.setUsername(username);
         ChatMessageEntity entity = new ChatMessageEntity();
         entity.setRoomCode(message.getRoomCode());
         entity.setUsername(message.getUsername());
