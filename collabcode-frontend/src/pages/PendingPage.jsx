@@ -57,7 +57,7 @@ export default function PendingPage() {
                     key={u.id}
                     className="flex justify-between bg-gray-800 p-3 mb-2 rounded"
                 >
-                    <span>{u.username}</span>
+                    <span>{u.user.username}</span>
 
                     <div className="flex gap-2">
                         <button
