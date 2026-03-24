@@ -18,6 +18,7 @@ export default function WaitingRoom() {
 
                 if (newStatus === "APPROVED") {
                     clearInterval(interval);
+                    navigate("/room/" + roomCode);
                 }
                 if (newStatus === "REJECTED") {
                     clearInterval(interval);
