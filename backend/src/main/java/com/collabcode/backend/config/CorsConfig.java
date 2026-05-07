@@ -15,7 +15,7 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("https://scintillating-unicorn-db77b4.netlify.app/login")
+                        .allowedOrigins("https://codeorbitz.netlify.app")
                         .allowedMethods("*")
                         .allowedHeaders("*")
                         .exposedHeaders("Authorization")
