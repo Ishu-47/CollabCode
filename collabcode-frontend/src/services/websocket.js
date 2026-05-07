@@ -14,7 +14,7 @@ export const connectWebSocket = async(
     const res = await api.get("/rooms/me");
     const username = res.data;
 
-    const socket = new SockJS("http://localhost:8080/ws");
+    const socket = new SockJS("import.meta.env.VITE_WS_URL");
 
     const client = new Client({
         webSocketFactory: () => socket,
